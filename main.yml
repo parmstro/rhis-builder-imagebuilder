@@ -1,0 +1,11 @@
+---
+
+- name: "Config imagebuilder"
+  hosts: imagebuilder9.parmstrong.ca
+  remote_user: parmstro
+  become: true
+  become_method: ansible.builtin.sudo
+  gather_facts: true
+
+  roles:
+    - soe-image-config-ib

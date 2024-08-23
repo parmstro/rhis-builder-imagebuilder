@@ -1,0 +1,11 @@
+---
+# These tasks iterate through the repos read from the repo file and generate the corresponding imagebuilder config file for the local architecture.
+# baseurl = baseurl
+# name = name
+# check_gpg=gpgcheck
+# gpgkey=ContentOf(gpgkey)
+# metadata_expire=metadata_expire
+# rhsm=true when registered
+
+- name: "Generate the dictionary for imagebuilder"
+  

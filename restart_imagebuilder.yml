@@ -1,0 +1,54 @@
+---
+# Restart the imagebuilder services in the proper order
+
+- name: Restart imagebuilder
+  hosts: imagebuilder9.parmstrong.ca
+  become: yes
+  become_method: sudo
+  tasks:
+
+  - name: stop composer
+    ansible.builtin.service:
+      name: osbuild-composer
+      state: stopped
+
+  - name: stop composer.socket
+    ansible.builtin.service:
+      name: osbuild-composer.socket
+      state: stopped
+    
+  - name: stop composer-local-worker
+    ansible.builtin.service:
+      name: osbuild-local-worker.socket
+      state: stopped
+
+  - name: start composer-local-worker
+    ansible.builtin.service:
+      name: osbuild-local-worker.socket
+      state: started
+
+  - name: start composer.socket
+    ansible.builtin.service:
+      name: osbuild-composer.socket
+      state: started
+    
+  - name: Get osbuild-local-worker status
+    command: systemctl status osbuild-local-worker.socket
+    register: result
+
+  - debug:
+      msg: "{{ result.stdout }}"
+
+  - name: Get osbuild-composer.socket status
+    command: systemctl status osbuild-composer.socket
+    register: result
+
+  - debug:
+      msg: "{{ result.stdout }}"
+
+  - name: Get osbuild-composer.service status
+    command: systemctl status osbuild-composer.service
+    register: result
+
+  - debug:
+      msg: "{{ result.stdout }}"
