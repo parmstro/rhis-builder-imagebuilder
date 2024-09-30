@@ -10,7 +10,7 @@
         name: "osbuild\\*"
         state: stopped
 
-    - name: "Reset failed state on all osbuild services"
+    - name: "Reset failed state on all osbuild services"  # noqa: command-instead-of-module
       ansible.builtin.command: "systemctl reset-failed osbuild\\*"
       changed_when: true
 
