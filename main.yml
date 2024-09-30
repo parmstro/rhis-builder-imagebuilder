@@ -1,8 +1,7 @@
 ---
 
 - name: "Config imagebuilder"
-  hosts: imagebuilder9.parmstrong.ca
-  remote_user: parmstro
+  hosts: all
   become: true
   become_method: ansible.builtin.sudo
   gather_facts: true

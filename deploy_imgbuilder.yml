@@ -4,62 +4,57 @@
 
 - name: Deploying Image Builder
   hosts: all
-  remote_user: root
   gather_facts: true
-  
-  vars: 
+
+  vars:
     composer_main_pkg: "osbuild-composer"
 
   tasks:
-  
+
   # packages are available in base repos.
   # for completeness, we would check registration and repository configuration
   # but we aren't going to as this system will always be installed by
   # Satellite
-  - name: ensure repos for RHEL7, RHEL8 they are in the base repos
-    rhsm_repository:
-      name: rhel-7-server-extras-rpms
-    when: ansible_distribution_major_version == "7"
+    - name: "Ensure repos for RHEL7, for later releases imagebuilder pkgs are in the base repos"
+      when: ansible_distribution_major_version == "7"
+      block:
+        - name: "DEPRECATION WARNING"
+          ansible.builtin.debug:
+            msg: "RHEL7 has reached end of maintenance - this functionality in no longer supported and will be removed"
 
-  - name: determine the builder application
-    set_fact:
-      composer_main_pkg: "lorax-composer"
-    when: ansible_distribution_major_version == "7"
+        - name: "Configure RHEL7 Repos"
+          community.general.rhsm_repository:
+            name: rhel-7-server-extras-rpms
 
-  - name: install packages
-    yum:
-      name:
-      - "{{ composer_main_pkg }}"
-      - composer-cli 
-      - cockpit
-      - cockpit-composer 
-      - bash-completion
-      state: latest
-    
+        - name: Set the imagebuilder package name
+          ansible.builtin.set_fact:
+            composer_main_pkg: "lorax-composer"
 
-  - name: enable composer socket
-    service:
-      name: "{{ composer_main_pkg }}.socket"
-      state: started
-      enabled: true
+    - name: "Install imagebuilder packages"
+      ansible.builtin.dnf:
+        name:
+          - "{{ composer_main_pkg }}"
+          - composer-cli
+          - cockpit
+          - cockpit-composer
+          - bash-completion
+        state: present
 
-  - name: enable cockpit socket
-    service:
-      name: cockpit.socket
-      state: started
-      enabled: true
+    - name: "Enable composer socket"
+      ansible.builtin.service:
+        name: "{{ composer_main_pkg }}.socket"
+        state: started
+        enabled: true
 
-  - name: configure firewall
-    firewalld:
-      service: cockpit
-      state: enabled
-      immediate: true
-      permanent: true
+    - name: "Enable cockpit socket"
+      ansible.builtin.service:
+        name: cockpit.socket
+        state: started
+        enabled: true
 
-  - name: configure environment
-    shell: "source  /etc/bash_completion.d/composer-cli"
-
-  - name: update for repository configuration
-    include_tasks: repo_config.yml
-    
-    
+    - name: "Configure firewall for services"
+      ansible.posix.firewalld:
+        service: cockpit
+        state: enabled
+        immediate: true
+        permanent: true
